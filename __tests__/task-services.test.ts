@@ -5,24 +5,8 @@ import { TaskService } from '../src/services/task.service';
 import { JsonStorage } from '../src/storage/json-storage';
 
 describe('TaskService', () => {
-  it('should expect TaskException task before saving', async () => {
-    const JSONStorage: IRepository<ITask> = new JsonStorage();
-    const taskService = new TaskService(JSONStorage);
-    const task: ITask = {
-      id: v4(),
-      title: '',
-      priority: 'low',
-      completed: 'pending',
-    };
 
-    try {
-      await taskService.createTask(task);
-    } catch (error) {
-      expect((error as any).message).toBe('title or priority is missing');
-    }
-  });
-
-  it('should create task', async () => {
+  beforeAll(async () => {
     const JSONStorage: IRepository<ITask> = new JsonStorage();
     const taskService = new TaskService(JSONStorage);
     const task: ITask = {
@@ -30,6 +14,21 @@ describe('TaskService', () => {
       title: 'New Task',
       priority: 'low',
       completed: 'pending',
+      description: 'New Task',
+    };
+
+    const result = await taskService.createTask(task);
+  });
+
+  it('should create task', async () => {
+    const JSONStorage: IRepository<ITask> = new JsonStorage();
+    const taskService = new TaskService(JSONStorage);
+    const task: ITask = {
+      id: v4(),
+      title: 'New Task 2',
+      priority: 'low',
+      completed: 'pending',
+      description: 'New Task',
     };
 
     const result = await taskService.createTask(task);
@@ -91,4 +90,25 @@ describe('TaskService', () => {
     expect(result).toBe(true);
     expect(completedTask[0].completed).toBe('completed');
   });
+
+  it('should return TaskException if priority is invalid', async () => {
+    const JSONStorage: IRepository<ITask> = new JsonStorage();
+    const taskService = new TaskService(JSONStorage);
+    const task = {
+      id: v4(),
+      title: 'New Task',
+      priority: 'asd',
+      completed: 'pending',
+      description: 'New Task',
+    };
+
+    try {
+      await taskService.createTask(task as any);
+    } catch (error) {
+      expect((error as any).message).toBe(
+        'Invalid priority. Priority should be low, medium or high',
+      );
+    }
+  });
+
 });
